@@ -24,8 +24,12 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     message: 'Application Logs API is running',
     timestamp: new Date().toISOString(),
     endpoints: {
-      logs: '/api/logs',
-      health: '/api/health'
-    }
+      'GET /api/logs': 'Fetch all logs',
+      'POST /api/logs': 'Create a new log',
+      'PUT /api/logs/{id}': 'Update a log by ID', 
+      'DELETE /api/logs/{id}': 'Delete a log by ID',
+      'GET /api/health': 'API health check'
+    },
+    note: 'All CRUD operations handled through single /api/logs endpoint with URL parsing'
   });
 }
