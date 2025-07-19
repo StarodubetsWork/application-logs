@@ -138,21 +138,11 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     res.setHeader(key, value);
   });
 
-  const { method, url } = req;
-  const path = url?.replace('/api', '') || '';
+  const { method } = req;
 
   try {
-    // Health check
-    if (method === 'GET' && path === '/health') {
-      return res.status(200).json({
-        success: true,
-        message: 'Server is running',
-        timestamp: new Date().toISOString()
-      });
-    }
-
-    // GET /logs
-    if (method === 'GET' && path === '/logs') {
+    // GET /api/logs
+    if (method === 'GET') {
       // Add artificial delay to see loading state
       await new Promise(resolve => setTimeout(resolve, 1500));
       
@@ -163,8 +153,8 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       });
     }
 
-    // POST /logs
-    if (method === 'POST' && path === '/logs') {
+    // POST /api/logs
+    if (method === 'POST') {
       // Add artificial delay to see loading state
       await new Promise(resolve => setTimeout(resolve, 2000));
       
@@ -194,72 +184,10 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       });
     }
 
-    // PUT /logs/:id
-    if (method === 'PUT' && path.startsWith('/logs/')) {
-      // Add artificial delay to see loading state
-      await new Promise(resolve => setTimeout(resolve, 1800));
-      
-      const id = path.split('/')[2];
-      const { owner, text } = req.body;
-      
-      if (!owner || !text) {
-        return res.status(400).json({
-          success: false,
-          message: 'Owner and text are required'
-        });
-      }
-
-      const logIndex = logs.findIndex(log => log.id === id);
-      
-      if (logIndex === -1) {
-        return res.status(404).json({
-          success: false,
-          message: 'Log not found'
-        });
-      }
-
-      logs[logIndex] = {
-        ...logs[logIndex],
-        owner,
-        text,
-        updatedAt: new Date()
-      };
-
-      return res.status(200).json({
-        success: true,
-        data: logs[logIndex],
-        message: 'Log updated successfully'
-      });
-    }
-
-    // DELETE /logs/:id
-    if (method === 'DELETE' && path.startsWith('/logs/')) {
-      // Add artificial delay to see loading state
-      await new Promise(resolve => setTimeout(resolve, 1600));
-      
-      const id = path.split('/')[2];
-      const logIndex = logs.findIndex(log => log.id === id);
-      
-      if (logIndex === -1) {
-        return res.status(404).json({
-          success: false,
-          message: 'Log not found'
-        });
-      }
-
-      const deletedLog = logs.splice(logIndex, 1)[0];
-
-      return res.status(200).json({
-        success: true,
-        data: deletedLog,
-        message: 'Log deleted successfully'
-      });
-    }
-
-    // Route not found
-    return res.status(404).json({
+    // Method not allowed
+    return res.status(405).json({
       success: false,
-      message: 'Route not found'
+      message: `Method ${method} not allowed`
     });
 
   } catch (error) {
