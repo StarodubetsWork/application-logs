@@ -1,5 +1,5 @@
 import type { VercelRequest, VercelResponse } from '@vercel/node';
-import { logs, state, type ILog } from './data';
+import { logs } from '../data';
 
 // CORS headers
 const corsHeaders = {
@@ -20,25 +20,14 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     res.setHeader(key, value);
   });
 
-  const { method } = req;
+  const { method, query } = req;
+  const id = query.id as string;
 
   try {
-    // GET /api/logs
-    if (method === 'GET') {
+    // PUT /api/logs/:id
+    if (method === 'PUT') {
       // Add artificial delay to see loading state
-      await new Promise(resolve => setTimeout(resolve, 1500));
-      
-      return res.status(200).json({
-        success: true,
-        data: logs,
-        message: 'Logs fetched successfully'
-      });
-    }
-
-    // POST /api/logs
-    if (method === 'POST') {
-      // Add artificial delay to see loading state
-      await new Promise(resolve => setTimeout(resolve, 2000));
+      await new Promise(resolve => setTimeout(resolve, 1800));
       
       const { owner, text } = req.body;
       
@@ -49,20 +38,49 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
         });
       }
 
-      const newLog: ILog = {
-        id: String(state.nextId++),
+      const logIndex = logs.findIndex(log => log.id === id);
+      
+      if (logIndex === -1) {
+        return res.status(404).json({
+          success: false,
+          message: 'Log not found'
+        });
+      }
+
+      logs[logIndex] = {
+        ...logs[logIndex],
         owner,
         text,
-        createdAt: new Date(),
         updatedAt: new Date()
       };
 
-      logs.push(newLog);
-
-      return res.status(201).json({
+      return res.status(200).json({
         success: true,
-        data: newLog,
-        message: 'Log created successfully'
+        data: logs[logIndex],
+        message: 'Log updated successfully'
+      });
+    }
+
+    // DELETE /api/logs/:id
+    if (method === 'DELETE') {
+      // Add artificial delay to see loading state
+      await new Promise(resolve => setTimeout(resolve, 1600));
+      
+      const logIndex = logs.findIndex(log => log.id === id);
+      
+      if (logIndex === -1) {
+        return res.status(404).json({
+          success: false,
+          message: 'Log not found'
+        });
+      }
+
+      const deletedLog = logs.splice(logIndex, 1)[0];
+
+      return res.status(200).json({
+        success: true,
+        data: deletedLog,
+        message: 'Log deleted successfully'
       });
     }
 
