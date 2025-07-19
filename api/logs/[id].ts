@@ -21,10 +21,13 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
   });
 
   const { method, query } = req;
-  const id = query.id as string;
+  const id = Array.isArray(query.id) ? query.id[0] : query.id;
+
+  // Debug logging
+  console.log('Dynamic route called:', { method, id, query });
 
   try {
-    // PUT /api/logs/:id
+    // PUT /api/logs/[id]
     if (method === 'PUT') {
       // Add artificial delay to see loading state
       await new Promise(resolve => setTimeout(resolve, 1800));
@@ -61,7 +64,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       });
     }
 
-    // DELETE /api/logs/:id
+    // DELETE /api/logs/[id]
     if (method === 'DELETE') {
       // Add artificial delay to see loading state
       await new Promise(resolve => setTimeout(resolve, 1600));
